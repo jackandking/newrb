@@ -19,27 +19,14 @@ $_newrb_server_='localhost:8080'
 require 'optparse'
 require 'uri'
 require 'net/http'
-=begin
-import sys,os
-import socket
-
-if os.name != "nt":
-    import fcntl
-    import struct
-
-    def get_interface_ip(ifname):
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        return socket.inet_ntoa(fcntl.ioctl(s.fileno(), 0x8915, struct.pack('256s',
-                                ifname[:15]))[20:24])
-
-=end
 
 def get_lan_ip()
-    ip='non'
+    require 'socket'
+    ip = IPSocket.getaddress(Socket.gethostname)
     return ip
 end
 
-$header=%Q{# -*- coding: utf-8 -*-
+$header=%Q{#!ruby
 # Author: %s
 # DateTime: %s
 # Generator: https://github.com/jackandking/newrb
@@ -52,174 +39,76 @@ $sample_blocks = {
     '0' => 
         ['Hello World',
 %Q@
-world=raw_input("Hello:")
+print "Hello:"
+world=gets.chomp
 World='ruby is case sensitive'
-print "Hello",world + "!"
+puts "Hello "+world.capitalize + "!"
 @],
 
     '1' => 
-['''If-Else inside While''',
+        ['If...else, case, unless',
+%Q@
+case Time.now.to_i % 10
+when 0 .. 5
+    if Time.now.to_i % 2 >0
+        puts "odd"
+    elsif true
+        puts "even"
+    else
+    end
+when 6,7
+    puts 6 unless false
+else
+    puts 89
+end
+@],
+    
+    '2' => 
+['Loops: while, for, until, break, redo and retry',
 '
-from time import time
-while not nil:
-    if int(time()) % 2:
-            print "True"
-            continue
-    else:
-            break
+while not nil
+    (0..2).each do |i|
+        puts "i=#{i}"
+        for j in 0..2
+            next if j <2
+            puts "j="+j.to_s
+        end
+        break unless i <2
+    end
+    break
+end
 '],
 
-    '2' => 
-['''List and Dict''',
+    '3' => 
+['Array and Hash',
 %Q@
-list=[1,3,2]; print list
-list_of_list=[1,2,[3,4]]; print list_of_list
-list_of_dict=[{"name":"jack", "sex":"M"},{"name":"king","sex":"M"}]; print list_of_dict
-dict={'yi':'one','san':'three','er':'two','array':['four','five']}; print dict
-for i in dict.keys(): print dict[i]
-for i in sorted(dict.keys()): print dict[i]
-print len(dict.keys())
+list=[1,3,2]; puts list
+list_of_list=[1,2,[3,4]]; print list_of_list; puts
+list_of_dict=[{"name"=>"jack", "sex"=>"M"},{"name"=>"king","sex"=>"M"}]; puts list_of_dict
+dict={'yi'=>'one','san'=>'three','er'=>'two','array'=>['four','five']}; puts dict
+for i in dict.keys()
+    print dict[i]; puts
+end
+for i in dict.keys.sort 
+    print dict[i]; puts
+end
+puts dict.keys.size
 @],
 
-    '3' => 
+    '4' => 
 ['''File Read and Write''',
 %Q@
-file=open("test.txt","w")
-file.write("line1")
+file=File.open("test.txt","w")
+file.write("line without newline")
+file.puts("line with newline")
 file.close
-file=open("test.txt","r")
-line=file.readline()
-while line:
-    print line
-    line=file.readline()
+file=File.open("test.txt","r")
+file.read.each_line do |line|
+    puts line
+end
 file.close
 @],
 }
-=begin
-    ('4' , 
-['''Regular Expression''',
-'''
-import re
-line='abc123abc'
-m=re.search('(\d+)',line)
-if m: print m.group(1)
-''']),
-
-    ('5' , 
-['''URLFetch and Exception Handling''',
-'''
-import urllib2,sys
-from urllib2 import URLError, HTTPError
-try:
-    response=urllib2.urlopen("www.baidu.com")
-    response=urllib2.urlopen("http://www.baidu.com")
-    print response.read(); 
-except HTTPError, e:
-    print 'The server couldn\'t fulfill the request.'
-    print 'Error code: ', e.code
-except URLError, e:
-    print 'We failed to reach a server.'
-    print 'Reason: ', e.reason
-except:
-    print "Unexpected error:", sys.exc_info()[0]
-''']),
-
-    ('6' , 
-['System Call',
-'''
-import subprocess
-#only care about return value
-print subprocess.call("dir abc.txt", shell=True)
-#Care about output
-print subprocess.check_output("hostname", shell=True)
-''']),
-
-    ('7' , 
-['String Operation',
-'''
-s='abc'+'de'
-print len(s)
-print s[0],s[-1]
-''']),
-
-    ('8' , 
-['eval and exec',
-'''
-a=eval('1+1')
-exec('b=1+1')
-print a,b
-''']),
-
-    ('9' , 
-['Unit Test',
-'''
-if __name__ == '__main__':
-    print "hello world!"
-''']),
-
-    ('c' , 
-['Class and SubClass',
-'''
-class Parent:        # define parent class
-   data = 100
-   def __init__(self): print "Calling parent constructor"
-   def __del__(self): print "Parent D'tor: ",self.data,Parent.data
-
-class Child(Parent): # define child class
-   def __init__(self): self.data=2; print "Calling child constructor"
-
-print Child()
-''']),
-
-    ('d' , 
-['Dict Deep Copy',
-'''
-import copy
-my_dict = {'a': [1, 2, 3], 'b': [4, 5, 6]}
-my_copy = copy.deepcopy(my_dict)
-my_dict['a'][2] = 7
-print my_copy['a'][2]
-''']),
-
-    ('f' , 
-['Function and DataTime',
-'''
-from datetime import date
-def isleap(year):
-    """Return True for leap years, False for non-leap years."""
-    return year % 4 == 0 and (year % 100 != 0 or year % 400 == 0)
-thisyear=date.today().year
-print isleap.__doc__
-print "this year is leap year:",isleap(thisyear)
-''']),
-
-    ('i' , 
-['Runtime Import',
-'''
-libname='time'
-globals()[libname] = __import__(libname)
-mod=globals()[libname]
-if hasattr(mod,'sleep'):
-    mod.sleep(1)
-''']),
-
-    ('m' , 
-['MongoDB - NoSQL',
-'''
-from pymongo import MongoClient
-client = MongoClient('localhost', 27017)
-db = client.test_database
-collection = db.test_collection
-post = {"author": "Mike","text": "My first blog post!"}
-posts = db.posts
-post_id = posts.insert(post)
-posts.find_one({"author": "Mike"})
-for post in posts.find():
-    post
-''']),
-
-])
-=end
 
 def write_sample_to_file(newrb_id=0,
                          id_list=nil,
@@ -263,25 +152,32 @@ end
 def submit_record(what,verbose)
     newrbid=0
     print("apply for newrb ID...") if verbose
-    #conn = Net::HTTP.new("http://"+$_newrb_server_)
-    #conn.read_timeout = 1
-    #conn.set_debug_output($stdout)
-    #request = Net::HTTP::Post.new "/newpy"
+    uri = URI("http://"+$_newrb_server_+"/newrb")
     params = {'which'=> $__version__, 'where'=> get_lan_ip(), 'who'=> $_author_, 'what'=> what}
-    #request.set_form_data({'which'=> $__version__, 'where'=> get_lan_ip(), 'who'=> $_author_, 'what'=> what})
-
+    req = Net::HTTP::Post.new(uri)
+    req.set_form_data(params)
     begin
-        response = Net::HTTP.post_form(URI.parse("http://"+$_newrb_server_+"/newpy"), params)
-        #response = conn.request(request)
-        #puts response.body
-        newrbid=response.body.to_i if response.is_a?(Net::HTTPSuccess)
+
+        res = Net::HTTP.start(uri.hostname, uri.port) do |http|
+            http.read_timeout = 1
+            http.set_debug_output($stdout) if $options[:debug]
+            http.request(req)
+        end
+
+        case res
+        when Net::HTTPSuccess, Net::HTTPRedirection
+            # OK
+            newrbid=res.body.to_i if res.is_a?(Net::HTTPSuccess)
+        else
+            res.value
+        end
     rescue Exception => e
         puts e.message
     end
 
     if verbose 
         if newrbid >0 
-            puts "ok, got",newrbid
+            puts "ok, got "+newrbid.to_s
         else  
             puts "ko, use 0"
         end
@@ -306,29 +202,28 @@ def upload_file(filename)
         abort("error: no valid newrb ID found for "+filename)
     end
     print("uploading "+filename+"(newrbid="+newrbid.to_s+")...")
-    #conn = Net::HTTP.new("http://"+$_newrb_server_)
-    #conn.read_timeout = 5 
-    #conn.set_debug_output($stdout)
-    #request = Net::HTTP::Post.new "/newpy/upload"
-    #request.set_form_data({'filename'=> filename, 'content'=> File.open(filename,'rb').read})
+    uri = URI("http://"+$_newrb_server_+"/newrb/upload")
     params={'filename'=> filename, 'content'=> File.open(filename,'rb').read}
     begin
-        #response = conn.request(request)
-        response = Net::HTTP.post_form(URI.parse("http://"+$_newrb_server_+"/newpy/upload"), params)
-        if response.is_a?(Net::HTTPSuccess)
-            puts response.body
+
+        res = Net::HTTP.post_form(uri,params)
+
+        case res
+        when Net::HTTPSuccess, Net::HTTPRedirection
+            puts res.body
             puts "weblink: http://"+$_newrb_server_+"/newrb/"+newrbid.to_s
         else
-            puts "ko"
+            puts "ko "+res.value
         end
+    
     rescue Exception => e
-        puts e.message
+        puts "Exception: "+e.message
     end
     exit
 end
 
+$options={}
 def main()
-    options={}
     optparser = OptionParser.new do|opts|
         opts.banner = "usage: #{__FILE__} [options] filename"
 
@@ -337,10 +232,10 @@ def main()
             exit
         end
 
-        options[:sample_list]=''
+        $options[:sample_list]=''
         opts.on("-s", "--samples sample-id-list", 'select samples to include in the new file',
                       'e.g. -s 123, check -l for all ids.') do |sample_list|
-            options[:sample_list]=sample_list
+            $options[:sample_list]=sample_list
         end
 
         opts.on("-l", "--list_sample_id", "list all the available samples.") do
@@ -352,29 +247,35 @@ def main()
             exit
         end
 
-        options[:comment]=false
+        $options[:comment]=false
         opts.on("-c", "--comment", "add samples with prefix '#'" ) do
-            options[:comment]=true
+            $options[:comment]=true
         end
 
-        options[:verbose]=true
+        $options[:verbose]=true
         opts.on("-q", "--quiet", "run in silent mode") do
-            options[:verbose]=false
+            $options[:verbose]=false
         end
 
-        options[:overwrite]=false
+        $options[:overwrite]=false
         opts.on("-o", "--overwrite", "overwrite existing file") do
-            options[:overwrite]=true
+            $options[:overwrite]=true
         end
 
-        options[:test]=false
+        $options[:test]=false
         opts.on("-t", "--test", "run in test mode, no file generation, only print result to screen.") do
-            options[:test]=true
+            $options[:test]=true
         end
 
-        options[:record]=true
+        $options[:debug]=false
+        opts.on("-d", "--debug", "run in debug mode, more debug info.",
+               "note: put -d before any other options to take best effect.") do
+            $options[:debug]=true
+        end
+
+        $options[:record]=true
         opts.on("-n", "--norecord", "don't submit record to improve newrb") do
-            options[:record]=false
+            $options[:record]=false
         end
     end
     optparser.parse!
@@ -385,15 +286,15 @@ def main()
     end
 
     filename=ARGV[0]+'.rb'
-    if !options[:overwrite] and File.exist?(filename)
+    if !$options[:overwrite] and File.exist?(filename)
         puts("error: "+filename+" already exist!")
         exit
     end
 
-    verbose=options[:verbose]
-    sample_list=options[:sample_list]
+    verbose=$options[:verbose]
+    sample_list=$options[:sample_list]
 
-    if options[:record]
+    if !$options[:test] and $options[:record]
         newrb_id=submit_record(sample_list,verbose)
     else 
         newrb_id=0
@@ -401,8 +302,8 @@ def main()
 
     write_sample_to_file(newrb_id,
                          sample_list,
-                         options[:test] ? nil : filename,
-                         options[:comment])
+                         $options[:test] ? nil : filename,
+                         $options[:comment])
     puts "generate #{filename} successfully." if verbose 
 end
 
