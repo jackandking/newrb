@@ -3,7 +3,7 @@
 # DateTime: 2013-08-15 16:03:14
 # HomePage: https://github.com/jackandking/newrb
 
-$__version__='0.1'
+$__version__='0.2'
 
 'Contributors:
     Yingjie.Liu@thomsonreuters.com
@@ -13,8 +13,8 @@ $__version__='0.1'
 $_author_ = 'Yingjie.Liu@thomsonreuters.com'
 # Configuration Area End
 
-#$_newrb_server_='newxx.sinaapp.com'
-$_newrb_server_='localhost:8080'
+$_newrb_server_='newxx.sinaapp.com'
+#$_newrb_server_='localhost:8080'
 
 require 'optparse'
 require 'uri'
@@ -45,7 +45,7 @@ World='ruby is case sensitive'
 puts "Hello "+world.capitalize + "!"
 @],
 
-    '1' => 
+    'i' => 
         ['If...else, case, unless',
 %Q@
 case Time.now.to_i % 10
@@ -63,7 +63,7 @@ else
 end
 @],
     
-    '2' => 
+    'l' => 
 ['Loops: while, for, until, break, redo and retry',
 '
 while not nil
@@ -79,7 +79,19 @@ while not nil
 end
 '],
 
-    '3' => 
+     '1' => 
+['If-Else inside While',
+'
+while not nil
+    if Time.now.to_i % 2
+        puts "true"
+    else
+        break
+    end
+end
+'],
+
+   '2' => 
 ['Array and Hash',
 %Q@
 list=[1,3,2]; puts list
@@ -95,7 +107,7 @@ end
 puts dict.keys.size
 @],
 
-    '4' => 
+    '3' => 
 ['''File Read and Write''',
 %Q@
 file=File.open("test.txt","w")
@@ -108,6 +120,28 @@ file.read.each_line do |line|
 end
 file.close
 @],
+    
+    '4' => 
+['Regular Expression',
+%q@
+line='abc123abc'
+m=/(\d+)/.match(line)
+if m
+    puts m[1]
+end
+@],
+ 
+    '5' => 
+['String Operation',
+%q@
+s='abc'+'de'+1.to_s
+puts s
+puts s.length
+puts s[2,3] #start, length
+puts s[-3,2] #start, length
+print s.split(//) #string to char list
+@],
+
 }
 
 def write_sample_to_file(newrb_id=0,
@@ -169,10 +203,10 @@ def submit_record(what,verbose)
             # OK
             newrbid=res.body.to_i if res.is_a?(Net::HTTPSuccess)
         else
-            res.value
+            puts res.value if $options[:debug]
         end
     rescue Exception => e
-        puts e.message
+        puts e.message if $options[:debug]
     end
 
     if verbose 
