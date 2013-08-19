@@ -32,6 +32,7 @@ $header=%Q{#!ruby
 # Generator: https://github.com/jackandking/newrb
 # Newrb Version: %s
 # Newrb ID: %s
+
 }
 
 $sample_blocks = {
@@ -141,7 +142,19 @@ puts s[2,3] #start, length
 puts s[-3,2] #start, length
 print s.split(//) #string to char list
 @],
+  
+    'e' => 
+['eval',
+%q@
+a=1
+eval('puts a') #big change before and after Ruby v1.8
+@],
 
+    'o' => 
+['Option Parse',
+%q@
+abort("usage: "+$0+" <xx>") if ARGV.size < 1
+@],
 }
 
 def write_sample_to_file(newrb_id=0,
