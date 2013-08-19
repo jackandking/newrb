@@ -4,7 +4,7 @@ Quick Ruby programming for experienced lazy developers on small utilities. It wi
 
 Run Environment
 ---------------
-Tested in windowns.
+Tested in Ruby 2.0 under Windows.
 
 Ruby Installation
 -----------------
@@ -15,7 +15,10 @@ Module Management
 -----------------
 Ruby is powerful only because there are lots of useful modules. They are free for you, so you must learn to download&install modules.
 
-gem install rubyzip gem list
+gem should be available after Ruby installation otherwise check http://rubyforge.org/frs/?group_id=126&release_id=47112
+
+    gem install <module>
+    gem list
 
 
 Install newrb.rb
